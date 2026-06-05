@@ -1,0 +1,9 @@
+[build]
+nixpacks_config = """
+[phases.setup]
+cmds = ["apt-get update && apt-get install -y php-intl"]
+"""
+
+[php]
+extensions = ["intl"]
+
