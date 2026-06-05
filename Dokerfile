@@ -1,0 +1,48 @@
+FROM php:8.3-cli
+
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    libicu-dev \
+    && docker-php-ext-install \
+    intl \
+    pdo \
+    pdo_mysql \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Copiar composer primero
+COPY composer.json composer.lock ./
+
+# Instalar dependencias PHP
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction
+
+# Copiar proyecto
+COPY . .
+
+# Crear carpetas necesarias para CakePHP
+RUN mkdir -p \
+    tmp/cache/models \
+    tmp/cache/persistent \
+    tmp/cache/views \
+    tmp/sessions \
+    logs
+
+# Permisos
+RUN chmod -R 777 tmp logs
+
+# Puerto Railway
+EXPOSE 8080
+
+# Iniciar aplicación
+CMD php -S 0.0.0.0:${PORT:-8080} -t webroot
